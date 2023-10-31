@@ -12,14 +12,17 @@ import {
   Post,
   Put,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 import { TodoService } from './todo.service';
 import { Todo } from './todo.entity';
+import { TodoGuard } from './todo.guard';
 
 @Controller('todo')
 export class TodoController {
   constructor(private readonly todoService: TodoService) {}
   @Get()
+  @UseGuards(TodoGuard)
   async findAll(@Res() res) {
     try {
       const data = await this.todoService.findAll();
@@ -31,6 +34,7 @@ export class TodoController {
     }
   }
   @Get(':id')
+  @UseGuards(TodoGuard)
   async findOne(@Res() res, @Param('id', ParseIntPipe) id: number) {
     try {
       const data = await this.todoService.findOne({ id: id });
@@ -42,10 +46,11 @@ export class TodoController {
     }
   }
   @Post('new')
+  @UseGuards(TodoGuard)
   async create(@Res() res, @Body() body) {
     try {
       const data = {
-        id_account: body.id_account,
+        account: body.account,
         title: body.title,
         description: body.description,
         timeStart: body.timeStart,
@@ -64,6 +69,7 @@ export class TodoController {
     }
   }
   @Put('update/:id')
+  @UseGuards(TodoGuard)
   async update(
     @Res() res,
     @Param('id', ParseIntPipe) id: number,
@@ -72,7 +78,7 @@ export class TodoController {
     try {
       const data = {
         id: id,
-        id_account: body.id_account,
+        account: body.account,
         title: body.title,
         description: body.description,
         timeStart: body.timeStart,
@@ -88,6 +94,7 @@ export class TodoController {
     }
   }
   @Delete('delete/:id')
+  @UseGuards(TodoGuard)
   async delete(@Res() res, @Param('id', ParseIntPipe) id: number) {
     try {
       await this.todoService.delete({ id: id });

@@ -1,12 +1,9 @@
 import { IsString, IsInt, IsDate } from 'class-validator';
 import {
   Column,
-  CreateDateColumn,
   Entity,
   JoinColumn,
-  JoinTable,
   ManyToOne,
-  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Account } from '../account/account.entity';
@@ -21,7 +18,7 @@ export class Todo {
   @ManyToOne(() => Account, {
     nullable: false,
   })
-  id_account: number;
+  account: Account;
 
   @Column({
     type: 'text',

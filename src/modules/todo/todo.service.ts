@@ -32,7 +32,7 @@ export class TodoService {
     return data;
   }
   async create({
-    id_account,
+    account,
     title,
     description,
     timeStart,
@@ -41,7 +41,7 @@ export class TodoService {
   }: Todo) {
     try {
       const todo = new Todo();
-      todo.id_account = id_account;
+      todo.account = account;
       todo.title = title;
       todo.description = description;
       todo.timeStart = new Date(timeStart);
@@ -54,7 +54,7 @@ export class TodoService {
   }
   async update({
     id,
-    id_account,
+    account,
     title,
     description,
     timeStart,
@@ -73,7 +73,7 @@ export class TodoService {
       }
       const todo = new Todo();
       todo.id = id;
-      todo.id_account = id_account;
+      todo.account = account;
       todo.title = title;
       todo.description = description;
       todo.timeStart = timeStart;

@@ -12,14 +12,17 @@ import {
   Post,
   Put,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 import { AccountService } from './account.service';
 import { Account } from './account.entity';
+import { AccountGuard } from './account.guard';
 
 @Controller('account')
 export class AccountController {
   constructor(private readonly accountService: AccountService) {}
   @Get()
+  @UseGuards(AccountGuard)
   async findAll(@Res() res) {
     try {
       const data = await this.accountService.findAll();
@@ -31,6 +34,7 @@ export class AccountController {
     }
   }
   @Get(':id')
+  @UseGuards(AccountGuard)
   async findOne(@Res() res, @Param('id', ParseIntPipe) id: number) {
     try {
       const data = await this.accountService.findOne({ id: id });
@@ -42,18 +46,20 @@ export class AccountController {
     }
   }
   @Post('new')
+  @UseGuards(AccountGuard)
   async create(@Res() res, @Body() body) {
     try {
       const data = {
-        id_profile: body.id_profile,
+        profile: body.profile,
         username: body.username,
         password: body.password,
         role: body.role,
       } as Account;
-      const id = await this.accountService.create(data);
-      return res
-        .status(HttpStatus.CREATED)
-        .json({ id: id, message: `Account id ${id} created` });
+      const account = await this.accountService.create(data);
+      return res.status(HttpStatus.CREATED).json({
+        account: account,
+        message: `Account id ${account.id} created`,
+      });
     } catch (error) {
       console.log(error);
       return res
@@ -62,6 +68,7 @@ export class AccountController {
     }
   }
   @Put('update/:id')
+  @UseGuards(AccountGuard)
   async update(
     @Res() res,
     @Param('id', ParseIntPipe) id: number,
@@ -70,13 +77,16 @@ export class AccountController {
     try {
       const data = {
         id: id,
-        id_profile: body.id_profile,
+        profile: body.profile,
         username: body.username,
         password: body.password,
         role: body.role,
       } as Account;
-      await this.accountService.update(data);
-      return res.status(HttpStatus.OK).json({ message: 'Success' });
+      const account = await this.accountService.update(data);
+      return res.status(HttpStatus.OK).json({
+        account: account,
+        message: `Account id ${account.id} created`,
+      });
     } catch (error) {
       return res
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -84,6 +94,7 @@ export class AccountController {
     }
   }
   @Delete('delete/:id')
+  @UseGuards(AccountGuard)
   async delete(@Res() res, @Param('id', ParseIntPipe) id: number) {
     try {
       await this.accountService.delete({ id: id });

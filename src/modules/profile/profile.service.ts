@@ -46,7 +46,7 @@ export class ProfileService {
       profile.gender = gender;
       profile.email = email;
       profile.image = image;
-      return (await this.profileRepository.save(profile)).id;
+      return await this.profileRepository.save(profile);
     } catch (error) {
       throw error;
     }
@@ -70,6 +70,7 @@ export class ProfileService {
       profile.email = email;
       profile.image = image;
       await this.profileRepository.update(id, profile);
+      return profile;
     } catch (error) {
       throw error;
     }

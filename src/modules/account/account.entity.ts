@@ -19,7 +19,7 @@ export class Account {
   @OneToOne(() => Profile, {
     nullable: false,
   })
-  id_profile: number;
+  profile: Profile;
 
   @Column({
     type: 'text',
