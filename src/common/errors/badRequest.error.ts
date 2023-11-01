@@ -6,7 +6,7 @@ import {
   NotFoundException,
   HttpStatus,
 } from '@nestjs/common';
-import e, { Response } from 'express';
+import { Response } from 'express';
 
 @Catch(UnauthorizedException, NotFoundException)
 export class BadRequestCustom implements ExceptionFilter {

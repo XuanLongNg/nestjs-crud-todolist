@@ -11,6 +11,7 @@ import AppConfigModule from './modules/configs/app.config.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { APP_FILTER } from '@nestjs/core';
 import { BadRequestCustom } from './common/errors/badRequest.error';
+import { EmailModule } from './modules/emails/email.module';
 
 @Module({
   imports: [
@@ -27,7 +28,8 @@ import { BadRequestCustom } from './common/errors/badRequest.error';
     AccountModule,
     AuthModule,
     TodoModule,
-    AppConfigModule,
+    AppConfigModule.register({ folder: '' }),
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [

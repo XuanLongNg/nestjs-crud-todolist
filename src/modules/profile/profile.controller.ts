@@ -13,13 +13,13 @@ import {
 } from '@nestjs/common';
 import { ProfileService } from './profile.service';
 import { Profile } from './profile.entity';
-import { ProfileGuard } from './profile.guard';
+import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('profile')
 export class ProfileController {
   constructor(private readonly profileService: ProfileService) {}
   @Get()
-  @UseGuards(ProfileGuard)
+  @UseGuards(AuthGuard)
   async findAll(@Res() res) {
     try {
       const data = await this.profileService.findAll();
@@ -31,7 +31,7 @@ export class ProfileController {
     }
   }
   @Get(':id')
-  @UseGuards(ProfileGuard)
+  @UseGuards(AuthGuard)
   async findOne(@Res() res, @Param('id', ParseIntPipe) id: number) {
     try {
       const data = await this.profileService.findOne({ id: id });
@@ -43,7 +43,7 @@ export class ProfileController {
     }
   }
   @Post('new')
-  @UseGuards(ProfileGuard)
+  @UseGuards(AuthGuard)
   async create(@Res() res, @Body() body) {
     try {
       const data = {
@@ -65,7 +65,7 @@ export class ProfileController {
     }
   }
   @Put('update/:id')
-  @UseGuards(ProfileGuard)
+  @UseGuards(AuthGuard)
   async update(
     @Res() res,
     @Param('id', ParseIntPipe) id: number,
@@ -92,7 +92,7 @@ export class ProfileController {
     }
   }
   @Delete('delete/:id')
-  @UseGuards(ProfileGuard)
+  @UseGuards(AuthGuard)
   async delete(@Res() res, @Param('id', ParseIntPipe) id: number) {
     try {
       await this.profileService.delete({ id: id });

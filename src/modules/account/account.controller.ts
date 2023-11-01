@@ -16,13 +16,13 @@ import {
 } from '@nestjs/common';
 import { AccountService } from './account.service';
 import { Account } from './account.entity';
-import { AccountGuard } from './account.guard';
+import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('account')
 export class AccountController {
   constructor(private readonly accountService: AccountService) {}
   @Get()
-  @UseGuards(AccountGuard)
+  @UseGuards(AuthGuard)
   async findAll(@Res() res) {
     try {
       const data = await this.accountService.findAll();
@@ -34,7 +34,7 @@ export class AccountController {
     }
   }
   @Get(':id')
-  @UseGuards(AccountGuard)
+  @UseGuards(AuthGuard)
   async findOne(@Res() res, @Param('id', ParseIntPipe) id: number) {
     try {
       const data = await this.accountService.findOne({ id: id });
@@ -46,7 +46,7 @@ export class AccountController {
     }
   }
   @Post('new')
-  @UseGuards(AccountGuard)
+  @UseGuards(AuthGuard)
   async create(@Res() res, @Body() body) {
     try {
       const data = {
@@ -61,14 +61,13 @@ export class AccountController {
         message: `Account id ${account.id} created`,
       });
     } catch (error) {
-      console.log(error);
       return res
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
         .json({ error: error.message });
     }
   }
   @Put('update/:id')
-  @UseGuards(AccountGuard)
+  @UseGuards(AuthGuard)
   async update(
     @Res() res,
     @Param('id', ParseIntPipe) id: number,
@@ -85,7 +84,7 @@ export class AccountController {
       const account = await this.accountService.update(data);
       return res.status(HttpStatus.OK).json({
         account: account,
-        message: `Account id ${account.id} created`,
+        message: `Account id ${account.id} updated`,
       });
     } catch (error) {
       return res
@@ -94,7 +93,7 @@ export class AccountController {
     }
   }
   @Delete('delete/:id')
-  @UseGuards(AccountGuard)
+  @UseGuards(AuthGuard)
   async delete(@Res() res, @Param('id', ParseIntPipe) id: number) {
     try {
       await this.accountService.delete({ id: id });

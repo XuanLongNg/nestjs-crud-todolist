@@ -3,6 +3,13 @@ import { Todo } from './todo.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Injectable } from '@nestjs/common';
 
+export enum Frequency {
+  DAILY = 'daily',
+  WEEKLY = 'weekly',
+  MONTHLY = 'monthly',
+  YEARLY = 'yearly',
+}
+
 @Injectable()
 export class TodoService {
   @InjectRepository(Todo)
@@ -83,6 +90,19 @@ export class TodoService {
     } catch (error) {
       throw error;
     }
+  }
+  async createTodoByFrequently(todo: Todo, frequency: Frequency) {
+    const loop = (() => {
+      if (frequency === 'daily') return 1;
+      else if (frequency === 'weekly') return 7;
+      else if (frequency === 'monthly') return 30;
+      return 364;
+    })();
+    const promiseArray = [];
+    for (let i = 0; i < loop; i++) {
+      promiseArray.push(this.create(todo));
+    }
+    return Promise.all(promiseArray);
   }
   async delete({ id }: { id: number }) {
     try {

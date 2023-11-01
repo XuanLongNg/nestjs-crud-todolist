@@ -14,15 +14,15 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { TodoService } from './todo.service';
+import { TodoService, Frequency } from './todo.service';
 import { Todo } from './todo.entity';
-import { TodoGuard } from './todo.guard';
+import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('todo')
 export class TodoController {
   constructor(private readonly todoService: TodoService) {}
   @Get()
-  @UseGuards(TodoGuard)
+  @UseGuards(AuthGuard)
   async findAll(@Res() res) {
     try {
       const data = await this.todoService.findAll();
@@ -34,7 +34,7 @@ export class TodoController {
     }
   }
   @Get(':id')
-  @UseGuards(TodoGuard)
+  @UseGuards(AuthGuard)
   async findOne(@Res() res, @Param('id', ParseIntPipe) id: number) {
     try {
       const data = await this.todoService.findOne({ id: id });
@@ -46,7 +46,7 @@ export class TodoController {
     }
   }
   @Post('new')
-  @UseGuards(TodoGuard)
+  @UseGuards(AuthGuard)
   async create(@Res() res, @Body() body) {
     try {
       const data = {
@@ -69,7 +69,7 @@ export class TodoController {
     }
   }
   @Put('update/:id')
-  @UseGuards(TodoGuard)
+  @UseGuards(AuthGuard)
   async update(
     @Res() res,
     @Param('id', ParseIntPipe) id: number,
@@ -94,12 +94,35 @@ export class TodoController {
     }
   }
   @Delete('delete/:id')
-  @UseGuards(TodoGuard)
+  @UseGuards(AuthGuard)
   async delete(@Res() res, @Param('id', ParseIntPipe) id: number) {
     try {
       await this.todoService.delete({ id: id });
       return res.status(HttpStatus.OK).json({ message: 'Success' });
     } catch (error) {
+      return res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .json({ error: error.message });
+    }
+  }
+  @Post('new/frequency')
+  @UseGuards(AuthGuard)
+  async createTodoByFrequently(@Res() res, @Body() body) {
+    try {
+      const data = {
+        account: body.account,
+        title: body.title,
+        description: body.description,
+        timeStart: body.timeStart,
+        timeEnd: body.timeEnd,
+        status: body.status,
+      } as Todo;
+      await this.todoService.createTodoByFrequently(data, body.frequency);
+      return res
+        .status(HttpStatus.CREATED)
+        .json({ message: `todo id created` });
+    } catch (error) {
+      console.log(error);
       return res
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
         .json({ error: error.message });
