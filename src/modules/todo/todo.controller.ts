@@ -17,16 +17,20 @@ import {
 import { TodoService, Frequency } from './todo.service';
 import { Todo } from './todo.entity';
 import { AuthGuard } from '../auth/auth.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { Role } from 'src/common/constants/role.enum';
 
 @Controller('todo')
 export class TodoController {
   constructor(private readonly todoService: TodoService) {}
   @Get()
+  @Roles(Role.ADMIN)
+  @Roles(Role.MEMBER)
   @UseGuards(AuthGuard)
   async findAll(@Res() res) {
     try {
       const data = await this.todoService.findAll();
-      return res.status(HttpStatus.OK).json(data);
+      return res.status(HttpStatus.OK).json({ data });
     } catch (error) {
       return res
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -34,18 +38,22 @@ export class TodoController {
     }
   }
   @Get(':id')
+  @Roles(Role.ADMIN)
+  @Roles(Role.MEMBER)
   @UseGuards(AuthGuard)
   async findOne(@Res() res, @Param('id', ParseIntPipe) id: number) {
     try {
-      const data = await this.todoService.findOne({ id: id });
-      return res.status(HttpStatus.OK).json(data);
+      const data = await this.todoService.findOne({ id: id } as Todo);
+      return res.status(HttpStatus.OK).json({ data });
     } catch (error) {
       return res
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
         .json({ error: error.message });
     }
   }
-  @Post('new')
+  @Post()
+  @Roles(Role.ADMIN)
+  @Roles(Role.MEMBER)
   @UseGuards(AuthGuard)
   async create(@Res() res, @Body() body) {
     try {
@@ -57,10 +65,11 @@ export class TodoController {
         timeEnd: body.timeEnd,
         status: body.status,
       } as Todo;
-      const id = await this.todoService.create(data);
-      return res
-        .status(HttpStatus.CREATED)
-        .json({ id: id, message: `todo id ${id} created` });
+      const dataResponse = await this.todoService.create(data);
+      return res.status(HttpStatus.CREATED).json({
+        data: dataResponse,
+        message: `todo id ${dataResponse.id} created`,
+      });
     } catch (error) {
       console.log(error);
       return res
@@ -68,7 +77,9 @@ export class TodoController {
         .json({ error: error.message });
     }
   }
-  @Put('update/:id')
+  @Put(':id')
+  @Roles(Role.ADMIN)
+  @Roles(Role.MEMBER)
   @UseGuards(AuthGuard)
   async update(
     @Res() res,
@@ -85,27 +96,33 @@ export class TodoController {
         timeEnd: body.timeEnd,
         status: body.status,
       } as Todo;
-      await this.todoService.update(data);
-      return res.status(HttpStatus.OK).json({ message: 'Success' });
+      const dataResponse = await this.todoService.update(data);
+      return res
+        .status(HttpStatus.OK)
+        .json({ message: 'Success', data: dataResponse });
     } catch (error) {
       return res
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
         .json({ error: error.message });
     }
   }
-  @Delete('delete/:id')
+  @Delete(':id')
+  @Roles(Role.ADMIN)
+  @Roles(Role.MEMBER)
   @UseGuards(AuthGuard)
   async delete(@Res() res, @Param('id', ParseIntPipe) id: number) {
     try {
       await this.todoService.delete({ id: id });
-      return res.status(HttpStatus.OK).json({ message: 'Success' });
+      return res.status(HttpStatus.OK).json({ message: 'Todo deleted' });
     } catch (error) {
       return res
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
         .json({ error: error.message });
     }
   }
-  @Post('new/frequency')
+  @Post('frequency')
+  @Roles(Role.ADMIN)
+  @Roles(Role.MEMBER)
   @UseGuards(AuthGuard)
   async createTodoByFrequently(@Res() res, @Body() body) {
     try {
@@ -117,10 +134,13 @@ export class TodoController {
         timeEnd: body.timeEnd,
         status: body.status,
       } as Todo;
-      await this.todoService.createTodoByFrequently(data, body.frequency);
+      const dataResponse = await this.todoService.createTodoByFrequently(
+        data,
+        body.frequency,
+      );
       return res
         .status(HttpStatus.CREATED)
-        .json({ message: `todo id created` });
+        .json({ message: `todo id created`, data: dataResponse });
     } catch (error) {
       console.log(error);
       return res

@@ -6,6 +6,8 @@ import { AccountModule } from '../account/account.module';
 import { ProfileModule } from '../profile/profile.module';
 import { AuthGuard } from './auth.guard';
 import { EmailModule } from '../emails/email.module';
+import { LoginValidation } from 'src/common/pipes/loginValidate.pipe';
+import { RegisterValidation } from 'src/common/pipes/registerValidate.pipe';
 
 @Module({
   imports: [
@@ -14,7 +16,7 @@ import { EmailModule } from '../emails/email.module';
     ProfileModule,
     EmailModule,
   ],
-  providers: [AuthService, AuthGuard],
+  providers: [AuthService, AuthGuard, LoginValidation, RegisterValidation],
   controllers: [AuthController],
   exports: [AuthGuard],
 })

@@ -12,6 +12,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { APP_FILTER } from '@nestjs/core';
 import { BadRequestCustom } from './common/errors/badRequest.error';
 import { EmailModule } from './modules/emails/email.module';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -30,6 +31,12 @@ import { EmailModule } from './modules/emails/email.module';
     TodoModule,
     AppConfigModule.register({ folder: '' }),
     EmailModule,
+    ThrottlerModule.forRoot([
+      {
+        ttl: 4000,
+        limit: 10,
+      },
+    ]),
   ],
   controllers: [AppController],
   providers: [

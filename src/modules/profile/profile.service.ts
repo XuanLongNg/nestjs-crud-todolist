@@ -24,9 +24,9 @@ export class ProfileService {
       throw error;
     }
   }
-  async findOne({ id }: { id: number }) {
+  async findOne(profile: Profile) {
     try {
-      const data = await this.profileRepository.findOne({ where: { id: id } });
+      const data = await this.profileRepository.findOne({ where: profile });
       console.log(data);
 
       if (!data) {

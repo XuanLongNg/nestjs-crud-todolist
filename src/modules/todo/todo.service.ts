@@ -24,15 +24,38 @@ export class TodoService {
   }
   async findAll() {
     try {
-      const data = await this.todoRepository.find({});
+      const data = await this.todoRepository
+        .createQueryBuilder('todo')
+        .select([
+          'todo.id',
+          'todo.title',
+          'todo.description',
+          'todo.status',
+          'todo.timeStart',
+          'todo.timeEnd',
+        ])
+        .leftJoinAndSelect('todo.account', 'account')
+        .getMany();
       return data;
     } catch (error) {
       console.log(error);
       throw error;
     }
   }
-  async findOne({ id }: { id: number }) {
-    const data = await this.todoRepository.findOne({ where: { id: id } });
+  async findOne(todo: Todo) {
+    const data = this.todoRepository
+      .createQueryBuilder('todo')
+      .select([
+        'todo.id',
+        'todo.title',
+        'todo.description',
+        'todo.status',
+        'todo.timeStart',
+        'todo.timeEnd',
+      ])
+      .leftJoinAndSelect('todo.account', 'account')
+      .where(todo)
+      .getOne();
     if (!data) {
       throw new Error('todo does not exist');
     }
@@ -54,7 +77,8 @@ export class TodoService {
       todo.timeStart = new Date(timeStart);
       todo.timeEnd = new Date(timeEnd);
       todo.status = status;
-      return (await this.todoRepository.save(todo)).id;
+      await this.todoRepository.save(todo);
+      return todo;
     } catch (error) {
       throw error;
     }
@@ -87,6 +111,7 @@ export class TodoService {
       todo.timeEnd = timeEnd;
       todo.status = status;
       await this.todoRepository.update(id, todo);
+      return todo;
     } catch (error) {
       throw error;
     }
@@ -102,7 +127,8 @@ export class TodoService {
     for (let i = 0; i < loop; i++) {
       promiseArray.push(this.create(todo));
     }
-    return Promise.all(promiseArray);
+    const data = await Promise.all(promiseArray);
+    return data;
   }
   async delete({ id }: { id: number }) {
     try {

@@ -7,17 +7,23 @@ import {
   Request,
   Response,
   UseGuards,
+  UsePipes,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Account } from '../account/account.entity';
 import { AuthGuard } from './auth.guard';
+import { LoginValidation } from 'src/common/pipes/loginValidate.pipe';
+import { RegisterValidation } from 'src/common/pipes/registerValidate.pipe';
+import { Public } from 'src/common/decorators/publicRoute.decorator';
 
 @Controller('auth')
 export default class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('login')
+  @Public()
   @UseGuards(AuthGuard)
+  // @UsePipes(new LoginValidation())
   async login(@Response() res, @Body() body: Account) {
     try {
       const loginResponse = await this.authService.login(body);
@@ -29,8 +35,11 @@ export default class AuthController {
       return res.status(HttpStatus.UNAUTHORIZED).json({ error: error.message });
     }
   }
+
   @Post('register')
+  @Public()
   @UseGuards(AuthGuard)
+  @UsePipes(new RegisterValidation())
   async register(@Request() req, @Response() res, @Body() body) {
     try {
       const data = {
@@ -48,6 +57,7 @@ export default class AuthController {
   }
 
   @Get('refresh-token')
+  @Public()
   @UseGuards(AuthGuard)
   async refreshToken(@Request() req, @Response() res, @Body() body) {
     try {
@@ -59,7 +69,9 @@ export default class AuthController {
       return res.status(HttpStatus.UNAUTHORIZED).json({ error: error.message });
     }
   }
+
   @Post('reset-password')
+  @Public()
   @UseGuards(AuthGuard)
   async resetPassword(@Response() res, @Body() body) {
     try {
@@ -73,7 +85,9 @@ export default class AuthController {
       return res.status(HttpStatus.BAD_REQUEST).json({ error: error });
     }
   }
+
   @Post('send-mail-reset')
+  @Public()
   @UseGuards(AuthGuard)
   async sendMailReset(@Response() res, @Body() body) {
     try {

@@ -1,4 +1,4 @@
-import { Repository } from 'typeorm';
+import { FindOneOptions, Repository } from 'typeorm';
 import { Account } from './account.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Injectable } from '@nestjs/common';
@@ -32,7 +32,7 @@ export class AccountService {
       .getMany();
     return data;
   }
-  async findOne({ id }: { id: number }) {
+  async findOne(account: Account) {
     const data = await this.accountRepository
       .createQueryBuilder('account')
       .select([
@@ -44,23 +44,7 @@ export class AccountService {
         'profile.name',
       ])
       .leftJoinAndSelect('account.profile', 'profile')
-      .where('account.id = :id', { id: id })
-      .getOne();
-    return data;
-  }
-  async findOneByUsername(account: Account) {
-    const data = await this.accountRepository
-      .createQueryBuilder('account')
-      .select([
-        'account.id',
-        'account.password',
-        'account.role',
-        'account.username',
-        'profile.id',
-        'profile.name',
-      ])
-      .leftJoinAndSelect('account.profile', 'profile')
-      .where('account.username = :username', { username: account.username })
+      .where(account)
       .getOne();
     return data;
   }
@@ -90,9 +74,10 @@ export class AccountService {
     role?: string;
   }) {
     try {
-      const data =
-        (await this.findOne({ id: id })) ||
-        (await this.findOneByUsername({ username: username } as Account));
+      const data = await this.findOne({
+        id: id,
+        username: username,
+      } as Account);
 
       if (!data) {
         throw new Error('Account does not exist');
@@ -103,8 +88,6 @@ export class AccountService {
       account.username = username || data.username;
       account.password = password ? await hashText(password) : data.password;
       account.role = role || data.role;
-      console.log(account);
-
       await this.accountRepository.update(account.id, account);
       return account;
     } catch (error) {

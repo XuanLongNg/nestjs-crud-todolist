@@ -53,14 +53,16 @@ export class AuthService {
     delete decodeData.exp;
     const { access_token, refresh_token } = this.signToken(decodeData);
     return {
-      ...decodeData,
+      data: { ...decodeData },
       access_token,
       refresh_token,
     };
   }
   async login(account: Account) {
     try {
-      const accountData = await this.accountService.findOneByUsername(account);
+      const accountData = await this.accountService.findOne({
+        username: account.username,
+      } as Account);
       if (!accountData) throw new Error(`Username or password is not correct`);
       if (!(await compareText(account.password, accountData.password)))
         throw new Error(`Username or password is not correct`);
@@ -78,7 +80,9 @@ export class AuthService {
   }
   async register({ account, profile }: { account: Account; profile: Profile }) {
     try {
-      const checkExits = await this.accountService.findOneByUsername(account);
+      const checkExits = await this.accountService.findOne({
+        username: account.username,
+      } as Account);
       if (checkExits) throw new Error(`Username exists`);
       const user = await this.profileService.create(profile);
       const password = await hashText(account.password);

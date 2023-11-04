@@ -14,16 +14,19 @@ import {
 import { ProfileService } from './profile.service';
 import { Profile } from './profile.entity';
 import { AuthGuard } from '../auth/auth.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { Role } from 'src/common/constants/role.enum';
 
 @Controller('profile')
 export class ProfileController {
   constructor(private readonly profileService: ProfileService) {}
   @Get()
+  @Roles(Role.ADMIN)
   @UseGuards(AuthGuard)
   async findAll(@Res() res) {
     try {
       const data = await this.profileService.findAll();
-      return res.status(HttpStatus.OK).json(data);
+      return res.status(HttpStatus.OK).json({ data });
     } catch (error) {
       return res
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -31,18 +34,22 @@ export class ProfileController {
     }
   }
   @Get(':id')
+  @Roles(Role.ADMIN)
+  @Roles(Role.MEMBER)
   @UseGuards(AuthGuard)
   async findOne(@Res() res, @Param('id', ParseIntPipe) id: number) {
     try {
-      const data = await this.profileService.findOne({ id: id });
-      return res.status(HttpStatus.OK).json(data);
+      const data = await this.profileService.findOne({ id: id } as Profile);
+      return res.status(HttpStatus.OK).json({ data });
     } catch (error) {
       return res
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
         .json({ error: error.message });
     }
   }
-  @Post('new')
+
+  @Post()
+  @Roles(Role.ADMIN)
   @UseGuards(AuthGuard)
   async create(@Res() res, @Body() body) {
     try {
@@ -55,7 +62,7 @@ export class ProfileController {
       } as Profile;
       const profile = await this.profileService.create(data);
       return res.status(HttpStatus.CREATED).json({
-        profile: profile,
+        data: profile,
         message: `Profile id ${profile.id} created`,
       });
     } catch (error) {
@@ -64,7 +71,9 @@ export class ProfileController {
         .json({ error: error.message });
     }
   }
-  @Put('update/:id')
+  @Put(':id')
+  @Roles(Role.ADMIN)
+  @Roles(Role.MEMBER)
   @UseGuards(AuthGuard)
   async update(
     @Res() res,
@@ -82,7 +91,7 @@ export class ProfileController {
       };
       const profile = await this.profileService.update(data);
       return res.status(HttpStatus.OK).json({
-        profile: profile,
+        data: profile,
         message: `Profile id ${profile.id} updated successfully`,
       });
     } catch (error) {
@@ -91,7 +100,8 @@ export class ProfileController {
         .json({ error: error.message });
     }
   }
-  @Delete('delete/:id')
+  @Delete(':id')
+  @Roles(Role.ADMIN)
   @UseGuards(AuthGuard)
   async delete(@Res() res, @Param('id', ParseIntPipe) id: number) {
     try {
