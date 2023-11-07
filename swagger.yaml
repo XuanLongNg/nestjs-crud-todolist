@@ -826,21 +826,28 @@ paths:
         - upload
       description: upload file, requires api key
       produces:
-        - multipart/form-data;
+        - multipart/form-data
       requestBody:
         description: upload file
         content:
-          multipart/form-data;:
+          multipart/form-data:
             schema:
               $ref: '#/components/schemes/upload'
       responses:
-        201:
+        200:
           description: upload success
           content:
             application/json:
               schema:
                 type: object
                 $ref: '#/components/schemes/uploadSuccess'
+        400:
+          description: File is required
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/400-fileRequired'
         500:
           description: Unexpected error
           content:
@@ -1083,7 +1090,8 @@ components:
       type: object
       properties:
         file:
-          type: file
+          type: string
+          format: binary
       example:
         file: Hello.jpg
 
@@ -1708,6 +1716,13 @@ components:
           type: string
       example:
         error: Validation failed (numeric string is expected)
+    400-fileRequired:
+      type: object
+      properties:
+        error:
+          type: string
+      example:
+        error: File is required
     401-isCorrect:
       type: object
       properties:
