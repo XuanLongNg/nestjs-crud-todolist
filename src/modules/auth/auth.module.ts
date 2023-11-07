@@ -8,6 +8,10 @@ import { AuthGuard } from './auth.guard';
 import { EmailModule } from '../emails/email.module';
 import { LoginValidation } from 'src/common/pipes/loginValidate.pipe';
 import { RegisterValidation } from 'src/common/pipes/registerValidate.pipe';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { LocalStrategy } from './local.strategy';
+import { LocalAuthGuard } from './local-auth.guard';
 
 @Module({
   imports: [
@@ -15,8 +19,16 @@ import { RegisterValidation } from 'src/common/pipes/registerValidate.pipe';
     AccountModule,
     ProfileModule,
     EmailModule,
+    PassportModule,
   ],
-  providers: [AuthService, AuthGuard, LoginValidation, RegisterValidation],
+  providers: [
+    AuthService,
+    AuthGuard,
+    LocalAuthGuard,
+    LoginValidation,
+    RegisterValidation,
+    LocalStrategy,
+  ],
   controllers: [AuthController],
   exports: [AuthGuard],
 })

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ProfileModule } from './modules/profile/profile.module';
@@ -13,6 +13,10 @@ import { APP_FILTER } from '@nestjs/core';
 import { BadRequestCustom } from './common/errors/badRequest.error';
 import { EmailModule } from './modules/emails/email.module';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { UploadModule } from './modules/upload/upload.module';
+import { JwtModule } from '@nestjs/jwt';
+import { FirebaseModule } from './modules/firebase/firebase.module';
+import { LoggerCustom } from './services/logger.service';
 
 @Module({
   imports: [
@@ -20,9 +24,8 @@ import { ThrottlerModule } from '@nestjs/throttler';
       isGlobal: true,
       load: [config],
     }),
-    ConfigModule.forRoot({
-      isGlobal: true,
-      load: [() => config],
+    JwtModule.register({
+      global: true,
     }),
     TypeOrmModule.forRoot(config().database as TypeOrmModuleOptions),
     ProfileModule,
@@ -31,6 +34,8 @@ import { ThrottlerModule } from '@nestjs/throttler';
     TodoModule,
     AppConfigModule.register({ folder: '' }),
     EmailModule,
+    UploadModule,
+    FirebaseModule,
     ThrottlerModule.forRoot([
       {
         ttl: 4000,
@@ -47,4 +52,8 @@ import { ThrottlerModule } from '@nestjs/throttler';
     },
   ],
 })
-export class AppModule {}
+export class AppModule {
+  // configure(consumer: MiddlewareConsumer){
+  //   consumer.apply
+  // }
+}

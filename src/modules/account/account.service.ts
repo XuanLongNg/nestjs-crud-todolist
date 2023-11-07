@@ -48,47 +48,33 @@ export class AccountService {
       .getOne();
     return data;
   }
-  async create({ profile, username, password, role }: Account) {
+  async create(account: Account) {
     try {
-      const account = new Account();
-      account.profile = profile;
-      account.username = username;
-      account.password = password;
-      account.role = role;
       return await this.accountRepository.save(account);
     } catch (error) {
       throw error;
     }
   }
-  async update({
-    id,
-    profile,
-    username,
-    password,
-    role,
-  }: {
-    id?: number;
-    profile?: Profile;
-    username?: string;
-    password?: string;
-    role?: string;
-  }) {
+  async update(account: Partial<Account>) {
     try {
-      const data = await this.findOne({
-        id: id,
-        username: username,
-      } as Account);
+      const data = await this.accountRepository.findOne({
+        where: [
+          {
+            id: account.id,
+          },
+          {
+            username: account.username,
+          },
+        ],
+      });
 
       if (!data) {
         throw new Error('Account does not exist');
       }
-      const account = new Account();
-      account.id = id || data.id;
-      account.profile = profile || data.profile;
-      account.username = username || data.username;
-      account.password = password ? await hashText(password) : data.password;
-      account.role = role || data.role;
-      await this.accountRepository.update(account.id, account);
+      account.password = account.password
+        ? await hashText(account.password)
+        : data.password;
+      await this.accountRepository.update(data.id, account);
       return account;
     } catch (error) {
       throw error;

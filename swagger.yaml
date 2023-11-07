@@ -1,0 +1,1747 @@
+# Every Open API contains this
+openapi: '3.1.0'
+# This is the document metadata
+info:
+  version: '0.0.1'
+  title: Todo List API
+servers:
+  - url: http://localhost:4000/api
+    description: Production server
+schemes: -https
+tags:
+  - name: auth
+    description: authentication
+  - name: account
+    description: CRUD account
+  - name: profile
+    description: CRUD profile
+  - name: todo
+    description: CRUD todo
+  - name: upload
+    description: Upload file image
+paths:
+  /auth/login:
+    post:
+      tags:
+        - auth
+      description: Login api
+      produces:
+        - application/json
+      requestBody:
+        description: Login
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemes/login'
+      responses:
+        200:
+          description: Login success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemes/loginSuccess'
+        401:
+          description: Username or password is incorrect
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemes/401-isCorrect'
+        500:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemes/500'
+  /auth/register:
+    post:
+      tags:
+        - auth
+      description: Register a account
+      produces:
+        - application/json
+      requestBody:
+        description: Register
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemes/register'
+      responses:
+        200:
+          description: Register success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemes/registerSuccess'
+        401:
+          description: Username exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemes/401-userExists'
+        500:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemes/500'
+  /auth/refresh-token:
+    get:
+      tags:
+        - auth
+      description: Get refresh token
+      security:
+        - apiKey: []
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemes/refreshTokenSuccess'
+        401:
+          description: Invalid refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemes/401-invalidRefreshToken'
+        500:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemes/500'
+  /auth/reset-password:
+    post:
+      tags:
+        - auth
+      description: Reset password
+      produces:
+        - application/json
+      requestBody:
+        description: Reset password
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemes/reset-password'
+      responses:
+        200:
+          description: Reset password successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemes/resetPasswordSuccess'
+        400:
+          description: Invalid OTP
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemes/400-invalidOTP'
+        500:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemes/500'
+  /auth/send-mail-reset:
+    post:
+      tags:
+        - auth
+      description: send mail reset
+      produces:
+        - application/json
+      requestBody:
+        description: send mail reset
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemes/send-mail-reset'
+      responses:
+        200:
+          description: Send email successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemes/sendMailResetSuccess'
+        500:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemes/500'
+
+  /profile:
+    get:
+      tags:
+        - profile
+      description: get all profiles, requires api key
+      produces:
+        - application/json
+      security:
+        - apiKey: []
+      responses:
+        200:
+          description: Get profile success
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/getAllProfilesSuccess'
+        401:
+          description: JWT expired or invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/401-JWT-expired'
+        500:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemes/500'
+    post:
+      tags:
+        - profile
+      description: add new profile, requires api key
+      produces:
+        - application/json
+      security:
+        - apiKey: []
+      requestBody:
+        description: add new profile
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemes/add-profile'
+      responses:
+        201:
+          description: Add profile success
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/addProfileSuccess'
+        401:
+          description: JWT expired or invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/401-JWT-expired'
+        500:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemes/500'
+  /profile/{id}:
+    get:
+      tags:
+        - profile
+      description: find one profile by id, requires api key
+      produces:
+        - application/json
+      security:
+        - apiKey: []
+      parameters:
+        - name: id
+          in: path
+          description: id
+          required: true
+          explode: true
+          schema:
+            type: number
+      responses:
+        200:
+          description: Get profile success
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/getProfileSuccess'
+        400:
+          description: Invalid id, requires format numeric
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/400-invalid-format-id'
+        401:
+          description: JWT expired or invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/401-JWT-expired'
+        500:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemes/500'
+    put:
+      tags:
+        - profile
+      description: update profile, requires api key
+      produces:
+        - application/json
+      security:
+        - apiKey: []
+      parameters:
+        - name: id
+          in: path
+          description: id
+          required: true
+          explode: true
+          schema:
+            type: string
+      requestBody:
+        description: update profile
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemes/add-profile'
+      responses:
+        200:
+          description: update profile success
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/updateProfilesSuccess'
+        400:
+          description: Invalid id, requires format numeric
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/400-invalid-format-id'
+        401:
+          description: JWT expired or invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/401-JWT-expired'
+        500:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemes/500'
+    delete:
+      tags:
+        - profile
+      description: delete profile by id, requires api key
+      produces:
+        - application/json
+      security:
+        - apiKey: []
+      parameters:
+        - name: id
+          in: path
+          description: id
+          required: true
+          explode: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: delete profile success
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/deleteProfilesSuccess'
+        400:
+          description: Invalid id, requires format numeric
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/400-invalid-format-id'
+        401:
+          description: JWT expired or invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/401-JWT-expired'
+        500:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemes/500'
+
+  /account:
+    get:
+      tags:
+        - account
+      description: get all accounts, requires api key
+      produces:
+        - application/json
+      security:
+        - apiKey: []
+      responses:
+        200:
+          description: Get accounts success
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/getAllAccountsSuccess'
+        401:
+          description: JWT expired or invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/401-JWT-expired'
+        500:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemes/500'
+    post:
+      tags:
+        - account
+      description: add new account, requires api key
+      produces:
+        - application/json
+      security:
+        - apiKey: []
+      requestBody:
+        description: add new account
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemes/add-account'
+      responses:
+        201:
+          description: Add account success
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/addAccountSuccess'
+        401:
+          description: JWT expired or invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/401-JWT-expired'
+        500:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemes/500'
+  /account/{id}:
+    get:
+      tags:
+        - account
+      description: find one account by id, requires api key
+      produces:
+        - application/json
+      security:
+        - apiKey: []
+      parameters:
+        - name: id
+          in: path
+          description: id
+          required: true
+          explode: true
+          schema:
+            type: number
+      responses:
+        200:
+          description: Get account success
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/getAccountSuccess'
+        400:
+          description: Invalid id, requires format numeric
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/400-invalid-format-id'
+        401:
+          description: JWT expired or invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/401-JWT-expired'
+        500:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemes/500'
+    put:
+      tags:
+        - account
+      description: update account, requires api key
+      produces:
+        - application/json
+      security:
+        - apiKey: []
+      parameters:
+        - name: id
+          in: path
+          description: id
+          required: true
+          explode: true
+          schema:
+            type: string
+      requestBody:
+        description: update account
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemes/add-account'
+      responses:
+        200:
+          description: update account success
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/updateAccountSuccess'
+        400:
+          description: Invalid id, requires format numeric
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/400-invalid-format-id'
+        401:
+          description: JWT expired or invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/401-JWT-expired'
+        500:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemes/500'
+    delete:
+      tags:
+        - account
+      description: delete account by id, requires api key
+      produces:
+        - application/json
+      security:
+        - apiKey: []
+      parameters:
+        - name: id
+          in: path
+          description: id
+          required: true
+          explode: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: delete account success
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/deleteAccountSuccess'
+        400:
+          description: Invalid id, requires format numeric
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/400-invalid-format-id'
+        401:
+          description: JWT expired or invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/401-JWT-expired'
+        500:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemes/500'
+
+  /todo:
+    get:
+      tags:
+        - todo
+      description: get all todo, requires api key
+      produces:
+        - application/json
+      security:
+        - apiKey: []
+      responses:
+        200:
+          description: Get todo success
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/getAllTodoSuccess'
+        401:
+          description: JWT expired or invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/401-JWT-expired'
+        500:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemes/500'
+    post:
+      tags:
+        - todo
+      description: add new todo, requires api key
+      produces:
+        - application/json
+      security:
+        - apiKey: []
+      requestBody:
+        description: add new todo
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemes/add-todo'
+      responses:
+        201:
+          description: Add todo success
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/addTodoSuccess'
+        401:
+          description: JWT expired or invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/401-JWT-expired'
+        500:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemes/500'
+  /todo/{id}:
+    get:
+      tags:
+        - todo
+      description: find one todo by id, requires api key
+      produces:
+        - application/json
+      security:
+        - apiKey: []
+      parameters:
+        - name: id
+          in: path
+          description: id
+          required: true
+          explode: true
+          schema:
+            type: number
+      responses:
+        200:
+          description: Get todo success
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/getTodoSuccess'
+        400:
+          description: Invalid id, requires format numeric
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/400-invalid-format-id'
+        401:
+          description: JWT expired or invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/401-JWT-expired'
+        500:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemes/500'
+    put:
+      tags:
+        - todo
+      description: update todo, requires api key
+      produces:
+        - application/json
+      security:
+        - apiKey: []
+      parameters:
+        - name: id
+          in: path
+          description: id
+          required: true
+          explode: true
+          schema:
+            type: string
+      requestBody:
+        description: update todo
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemes/add-todo'
+      responses:
+        200:
+          description: update todo success
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/updateTodoSuccess'
+        400:
+          description: Invalid id, requires format numeric
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/400-invalid-format-id'
+        401:
+          description: JWT expired or invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/401-JWT-expired'
+        500:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemes/500'
+    delete:
+      tags:
+        - todo
+      description: delete todo by id, requires api key
+      produces:
+        - application/json
+      security:
+        - apiKey: []
+      parameters:
+        - name: id
+          in: path
+          description: id
+          required: true
+          explode: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: delete todo success
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/deleteTodoSuccess'
+        400:
+          description: Invalid id, requires format numeric
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/400-invalid-format-id'
+        401:
+          description: JWT expired or invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/401-JWT-expired'
+        500:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemes/500'
+  /todo/frequency:
+    post:
+      tags:
+        - todo
+      description: add new todo by frequency, requires api key
+      produces:
+        - application/json
+      security:
+        - apiKey: []
+      requestBody:
+        description: add new todo by frequency
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemes/add-todo-frequency'
+      responses:
+        201:
+          description: Add todo success
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/addTodoFrequencySuccess'
+        401:
+          description: JWT expired or invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/401-JWT-expired'
+        500:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemes/500'
+
+  /upload/file:
+    post:
+      tags:
+        - upload
+      description: upload file, requires api key
+      produces:
+        - multitype/form-data
+      requestBody:
+        description: upload file
+        content:
+          multitype/form-data:
+            schema:
+              $ref: '#/components/schemes/upload'
+      responses:
+        201:
+          description: upload success
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemes/uploadSuccess'
+        500:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemes/500'
+components:
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      name: Authorization
+      in: header
+      format: JWT
+  schemes:
+    login:
+      required:
+        - username
+        - password
+      type: object
+      properties:
+        username:
+          type: string
+          description: Username of account
+        password:
+          type: string
+          description: Password of account
+      example:
+        username: xuanlong0
+        password: '12345'
+    register:
+      require:
+        - profile
+        - account
+      type: object
+      properties:
+        profile:
+          type: object
+          properties:
+            name:
+              type: string
+            dob:
+              type: string
+            gender:
+              type: string
+            email:
+              type: string
+            image:
+              type: string
+        account:
+          type: object
+          properties:
+            username:
+              type: string
+            password:
+              type: string
+            role:
+              type: string
+      example:
+        profile:
+          name: long
+          dob: 2002-11-19
+          gender: male
+          email: long@gmail.com
+          image: https://static.tvtropes.org/pmwiki/pub/images/2e5c6d37_566f_4274_b62d_ebf5fcbd0722.png
+        account:
+          username: a1231a
+          password: Admin123
+    refresh-token:
+      require:
+        - profile
+        - account
+      type: object
+      properties:
+        profile:
+          type: object
+          properties:
+            name:
+              type: string
+            dob:
+              type: string
+            gender:
+              type: string
+            email:
+              type: string
+            image:
+              type: string
+        account:
+          type: object
+          properties:
+            username:
+              type: string
+            password:
+              type: string
+            role:
+              type: string
+      example:
+        profile:
+          name: long
+          dob: 2002-11-19
+          gender: male
+          email: long@gmail.com
+          image: https://static.tvtropes.org/pmwiki/pub/images/2e5c6d37_566f_4274_b62d_ebf5fcbd0722.png
+        account:
+          username: a1231a
+          password: Admin123
+    reset-password:
+      require:
+        - username
+        - password
+        - otp
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        otp:
+          type: string
+      example:
+        username: xuanlong0
+        password: '12345'
+        otp: '191212'
+    send-mail-reset:
+      require:
+        - email
+      type: object
+      properties:
+        email:
+          type: string
+      example:
+        email: 'hello@gmail.com'
+    add-profile:
+      type: object
+      properties:
+        name:
+          type: string
+        dob:
+          type: string
+        gender:
+          type: string
+        email:
+          type: string
+        image:
+          type: string
+      example:
+        name: Xuan Long
+        dob: 2002-11-19
+        gender: male
+        email: long@gmail.com
+        image: adandwnajnda
+    add-account:
+      type: object
+      properties:
+        id:
+          type: number
+        username:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+        profile:
+          type: object
+          properties:
+            id:
+              type: number
+            name:
+              type: string
+            dob:
+              type: string
+            gender:
+              type: string
+            email:
+              type: string
+            image:
+              type: string
+      example:
+        username: xuanlong1123
+        password: $2b$05$HWa7ZP7IHEHRp9hm.5tgZ.k/9dNIxC/csTpLHDLrJa.C6xE4.2jDS
+        role: member
+        profile:
+          id: 4
+          name: long
+          dob: 2002-11-19
+          gender: male
+          email: long@gmail.com
+          image: https://static.tvtropes.org/pmwiki/pub/images/2e5c6d37_566f_4274_b62d_ebf5fcbd0722.png
+    add-todo:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        timeStart:
+          type: string
+        timeEnd:
+          type: string
+        account:
+          id:
+            type: number
+      example:
+        title: Hello
+        description: hello
+        status: todo
+        timeStart: 2023-10-26T08:15:15.000Z
+        timeEnd: 2023-10-27T08:15:15.000Z
+        account:
+          id: 5
+    add-todo-frequency:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        timeStart:
+          type: string
+        timeEnd:
+          type: string
+        frequency:
+          type: string
+        account:
+          id:
+            type: number
+      example:
+        title: Hello
+        description: hello
+        status: todo
+        timeStart: 2023-10-26T08:15:15.000Z
+        timeEnd: 2023-10-27T08:15:15.000Z
+        frequency: 'weekly'
+        account:
+          id: 5
+    upload:
+      type: object
+      properties:
+        file:
+          type: file
+      example:
+        file: Hello.jpg
+
+    loginSuccess:
+      type: object
+      properties:
+        message:
+          type: string
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        data:
+          type: object
+          properties:
+            id:
+              type: number
+            username:
+              type: string
+            role:
+              type: string
+            provider:
+              type: object
+              properties:
+                id:
+                  type: number
+                name:
+                  type: string
+                dob:
+                  type: string
+                gender:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+      example:
+        message: Login successful
+        access_token: gdadadjadgagdw.adhagd.adgww
+        refresh_token: gadauwd.hehdadw.awbdwha
+        data:
+          id: 3
+          username: xuanlong0
+          role: member
+          profile:
+            id: 3
+            name: long
+            dob: 2002-11-19
+            gender: male
+            email: long@gmail.com
+            image: jdadhaudwgdwyadg
+    registerSuccess:
+      type: object
+      properties:
+        message:
+          type: string
+        data:
+          profile:
+            type: object
+            properties:
+              name:
+                type: string
+              dob:
+                type: string
+              gender:
+                type: string
+              email:
+                type: string
+              image:
+                type: string
+          account:
+          type: object
+          properties:
+            username:
+              type: string
+            password:
+              type: string
+            role:
+              type: string
+      example:
+        message: Register successful
+        data:
+          username: a1231a
+          password: $2b$10$7dcLwHCWd6weMBkr6lWcQuNOD8EoGCiS0APKKY/ZTlC8/yh4gVR5u
+          role: member
+          profile:
+            name: long
+            dob: 2002-11-19
+            gender: male
+            email: long@gmail.com
+            image: https://static.tvtropes.org/pmwiki/pub/images/2e5c6d37_566f_4274_b62d_ebf5fcbd0722.png
+            id: 10
+          id: 12
+    refreshTokenSuccess:
+      type: object
+      properties:
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            id:
+              type: number
+            username:
+              type: string
+            password:
+              type: string
+            role:
+              type: string
+            iat:
+              type: string
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+      example:
+        message: Success
+        data:
+          id: 5
+          username: long
+          password: 12313
+          role: member
+          iat: 18192371
+        access_token: jdajdaahw.auhdw.12813bda
+        refresh_token: ahdadhaw.2812.dgad
+    resetPasswordSuccess:
+      type: object
+      properties:
+        message:
+          type: string
+      example:
+        message: Success
+    sendMailResetSuccess:
+      type: object
+      properties:
+        message:
+          type: string
+      example:
+        message: Success
+    getAllProfilesSuccess:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: number
+              name:
+                type: string
+              dob:
+                type: string
+              gender:
+                type: string
+              email:
+                type: string
+              image:
+                type: string
+      example:
+        data:
+          - id: 1
+            name: Xuan Long
+            dob: 2002-11-19
+            gender: male
+            email: long@gmail.com
+            image: adandwnajnda
+    addProfileSuccess:
+      type: object
+      properties:
+        message:
+          type: string
+        data:
+          id:
+            type: number
+          name:
+            type: string
+          dob:
+            type: string
+          gender:
+            type: string
+          email:
+            type: string
+          image:
+            type: string
+      example:
+        message: 'Profile id 13 created'
+        data:
+          id: 1
+          name: Xuan Long
+          dob: 2002-11-19
+          gender: male
+          email: long@gmail.com
+          image: adandwnajnda
+    getProfileSuccess:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            id:
+              type: number
+            name:
+              type: string
+            dob:
+              type: string
+            gender:
+              type: string
+            email:
+              type: string
+            image:
+              type: string
+      example:
+        data:
+          id: 1
+          name: Xuan Long
+          dob: 2002-11-19
+          gender: male
+          email: long@gmail.com
+          image: adandwnajnda
+    updateProfilesSuccess:
+      type: object
+      properties:
+        message:
+          type: string
+        data:
+          id:
+            type: number
+          name:
+            type: string
+          dob:
+            type: string
+          gender:
+            type: string
+          email:
+            type: string
+          image:
+            type: string
+      example:
+        message: 'Profile id 1 updated successfully'
+        data:
+          id: 1
+          name: Xuan Long
+          dob: 2002-11-19
+          gender: male
+          email: long@gmail.com
+          image: adandwnajnda
+    deleteProfilesSuccess:
+      type: object
+      properties:
+        message:
+          type: string
+      example:
+        message: success
+    getAllAccountsSuccess:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: number
+              username:
+                type: string
+              password:
+                type: string
+              role:
+                type: string
+              profile:
+                type: object
+                properties:
+                  id:
+                    type: number
+                  name:
+                    type: string
+                  dob:
+                    type: string
+                  gender:
+                    type: string
+                  email:
+                    type: string
+                  image:
+                    type: string
+      example:
+        data:
+          - id: 4
+            username: xuanlong1123
+            password: $2b$05$HWa7ZP7IHEHRp9hm.5tgZ.k/9dNIxC/csTpLHDLrJa.C6xE4.2jDS
+            role: member
+            profile:
+              id: 4
+              name: long
+              dob: 2002-11-19
+              gender: male
+              email: long@gmail.com
+              image: https://static.tvtropes.org/pmwiki/pub/images/2e5c6d37_566f_4274_b62d_ebf5fcbd0722.png
+    addAccountSuccess:
+      type: object
+      properties:
+        id:
+          type: number
+        username:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+        profile:
+          type: object
+          properties:
+            id:
+              type: number
+            name:
+              type: string
+            dob:
+              type: string
+            gender:
+              type: string
+            email:
+              type: string
+            image:
+              type: string
+      example:
+        message: 'Account id 4 created'
+        data:
+          id: 4
+          username: xuanlong1123
+          password: $2b$05$HWa7ZP7IHEHRp9hm.5tgZ.k/9dNIxC/csTpLHDLrJa.C6xE4.2jDS
+          role: member
+          profile:
+            id: 4
+            name: long
+            dob: 2002-11-19
+            gender: male
+            email: long@gmail.com
+            image: https://static.tvtropes.org/pmwiki/pub/images/2e5c6d37_566f_4274_b62d_ebf5fcbd0722.png
+    getAccountSuccess:
+      type: object
+      properties:
+        id:
+          type: number
+        username:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+        profile:
+          type: object
+          properties:
+            id:
+              type: number
+            name:
+              type: string
+            dob:
+              type: string
+            gender:
+              type: string
+            email:
+              type: string
+            image:
+              type: string
+      example:
+        data:
+          id: 4
+          username: xuanlong1123
+          password: $2b$05$HWa7ZP7IHEHRp9hm.5tgZ.k/9dNIxC/csTpLHDLrJa.C6xE4.2jDS
+          role: member
+          profile:
+            id: 4
+            name: long
+            dob: 2002-11-19
+            gender: male
+            email: long@gmail.com
+            image: https://static.tvtropes.org/pmwiki/pub/images/2e5c6d37_566f_4274_b62d_ebf5fcbd0722.png
+    updateAccountSuccess:
+      type: object
+      properties:
+        id:
+          type: number
+        username:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+        profile:
+          type: object
+          properties:
+            id:
+              type: number
+            name:
+              type: string
+            dob:
+              type: string
+            gender:
+              type: string
+            email:
+              type: string
+            image:
+              type: string
+      example:
+        data:
+          id: 4
+          username: xuanlong1123
+          password: $2b$05$HWa7ZP7IHEHRp9hm.5tgZ.k/9dNIxC/csTpLHDLrJa.C6xE4.2jDS
+          role: member
+          profile:
+            id: 4
+            name: long
+            dob: 2002-11-19
+            gender: male
+            email: long@gmail.com
+            image: https://static.tvtropes.org/pmwiki/pub/images/2e5c6d37_566f_4274_b62d_ebf5fcbd0722.png
+    deleteAccountSuccess:
+      type: object
+      properties:
+        message:
+          type: string
+      example:
+        message: success
+    getAllTodoSuccess:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: number
+              title:
+                type: string
+              description:
+                type: string
+              status:
+                type: string
+              timeStart:
+                type: string
+              timeEnd:
+                type: string
+              account:
+                id:
+                  type: number
+                username:
+                  type: string
+                password:
+                  type: string
+                role:
+                  type: string
+      example:
+        data:
+          - id: 19
+            title: Hello
+            description: hello
+            status: todo
+            timeStart: 2023-10-26T08:15:15.000Z
+            timeEnd: 2023-10-27T08:15:15.000Z
+            account:
+              id: 5
+              username: admin
+              password: $2b$10$KZwBc0faUqgxrEca0bwqm.//1se4XUsqDrIsiuxk0VSqQ0yWhxSzS
+              role: admin
+    addTodoSuccess:
+      type: object
+      properties:
+        id:
+          type: number
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        timeStart:
+          type: string
+        timeEnd:
+          type: string
+        account:
+          id:
+            type: number
+      example:
+        data:
+          account:
+            id: 5
+          title: Hello
+          description: hello
+          timeStart: 2023-10-26 15:15:15
+          timeEnd: 2023-10-27 15:15:15
+          status: todo
+          id: 45
+        message: todo id 45 created
+    getTodoSuccess:
+      type: object
+      properties:
+        id:
+          type: number
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        timeStart:
+          type: string
+        timeEnd:
+          type: string
+        account:
+          id:
+            type: number
+          username:
+            type: string
+          password:
+            type: string
+          role:
+            type: string
+      example:
+        data:
+          id: 19
+          title: Hello
+          description: hello
+          status: todo
+          timeStart: 2023-10-26T08:15:15.000Z
+          timeEnd: 2023-10-27T08:15:15.000Z
+          account:
+            id: 5
+            username: admin
+            password: $2b$10$KZwBc0faUqgxrEca0bwqm.//1se4XUsqDrIsiuxk0VSqQ0yWhxSzS
+            role: admin
+    updateTodoSuccess:
+      type: object
+      properties:
+        id:
+          type: number
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        timeStart:
+          type: string
+        timeEnd:
+          type: string
+        account:
+          id:
+            type: number
+      example:
+        data:
+          account:
+            id: 5
+          title: Hello
+          description: hello
+          timeStart: 2023-10-26 15:15:15
+          timeEnd: 2023-10-27 15:15:15
+          status: todo
+          id: 45
+        message: Success
+    deleteTodoSuccess:
+      type: object
+      properties:
+        message:
+          type: string
+      example:
+        message: Todo deleted
+    addTodoFrequencySuccess:
+      message:
+        type: string
+      data:
+        type: object
+        properties:
+          id:
+            type: number
+          title:
+            type: string
+          description:
+            type: string
+          status:
+            type: string
+          timeStart:
+            type: string
+          timeEnd:
+            type: string
+          account:
+            id:
+              type: number
+      example:
+        data:
+          id: 45
+          account:
+            id: 5
+          title: Hello
+          description: hello
+          timeStart: 2023-10-26 15:15:15
+          timeEnd: 2023-10-27 15:15:15
+          status: todo
+        message: todo created
+    uploadSuccess:
+      type: object
+      properties:
+        message:
+          type: string
+        url:
+          type: string
+      example:
+        message: Uploaded file successfully
+        url: https://firebasestorage.googleapis.com/v0/b/quiz-d364f.appspot.com/o/todo%2F4f4fa2d8-7600-4527-874a-3230bb2fea11.jpg?alt=media&token=1d61c35f-2bb9-483d-82de-88acad9a503f
+
+    400-invalidOTP:
+      type: object
+      properties:
+        error:
+          type: string
+      example:
+        error: Invalid OTP
+    400-invalid-format-id:
+      type: object
+      properties:
+        error:
+          type: string
+      example:
+        error: Validation failed (numeric string is expected)
+    401-isCorrect:
+      type: object
+      properties:
+        error:
+          type: string
+      example:
+        error: Username or password is incorrect
+    401-userExists:
+      type: object
+      properties:
+        error:
+          type: string
+      example:
+        error: Username exists
+    401-JWT-expired:
+      type: object
+      properties:
+        error:
+          type: string
+      example:
+        error: Invalid or expired JWT token
+    401-invalidRefreshToken:
+      type: object
+      properties:
+        error:
+          type: string
+      example:
+        error: Invalid refresh token
+    500:
+      type: object
+      properties:
+        error:
+          type: string
+      example:
+        error: Internal server error
+# security:
+#   - apiKey: []

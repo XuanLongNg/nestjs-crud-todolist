@@ -20,7 +20,7 @@ import { AuthGuard } from '../auth/auth.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/common/constants/role.enum';
 
-@Controller('todo')
+@Controller('api/todo')
 export class TodoController {
   constructor(private readonly todoService: TodoService) {}
   @Get()
@@ -140,7 +140,7 @@ export class TodoController {
       );
       return res
         .status(HttpStatus.CREATED)
-        .json({ message: `todo id created`, data: dataResponse });
+        .json({ message: `todo created`, data: dataResponse });
     } catch (error) {
       console.log(error);
       return res

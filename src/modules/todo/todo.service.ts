@@ -61,56 +61,22 @@ export class TodoService {
     }
     return data;
   }
-  async create({
-    account,
-    title,
-    description,
-    timeStart,
-    timeEnd,
-    status,
-  }: Todo) {
+  async create(todo: Todo) {
     try {
-      const todo = new Todo();
-      todo.account = account;
-      todo.title = title;
-      todo.description = description;
-      todo.timeStart = new Date(timeStart);
-      todo.timeEnd = new Date(timeEnd);
-      todo.status = status;
       await this.todoRepository.save(todo);
       return todo;
     } catch (error) {
       throw error;
     }
   }
-  async update({
-    id,
-    account,
-    title,
-    description,
-    timeStart,
-    timeEnd,
-    status,
-  }: Todo) {
+  async update(todo: Partial<Todo>) {
     try {
-      const data = await this.todoRepository.find({
-        where: {
-          id: id,
-        },
-      });
+      const data = await this.findOne({ id: todo.id } as Todo);
 
-      if (!data.length) {
+      if (!data) {
         throw new Error('todo does not exist');
       }
-      const todo = new Todo();
-      todo.id = id;
-      todo.account = account;
-      todo.title = title;
-      todo.description = description;
-      todo.timeStart = timeStart;
-      todo.timeEnd = timeEnd;
-      todo.status = status;
-      await this.todoRepository.update(id, todo);
+      await this.todoRepository.update(todo.id, todo);
       return todo;
     } catch (error) {
       throw error;
@@ -123,12 +89,12 @@ export class TodoService {
       else if (frequency === 'monthly') return 30;
       return 364;
     })();
-    const promiseArray = [];
+    const arr = [];
     for (let i = 0; i < loop; i++) {
-      promiseArray.push(this.create(todo));
+      arr.push(todo);
     }
-    const data = await Promise.all(promiseArray);
-    return data;
+    const data = await this.todoRepository.save(arr);
+    return data[0];
   }
   async delete({ id }: { id: number }) {
     try {

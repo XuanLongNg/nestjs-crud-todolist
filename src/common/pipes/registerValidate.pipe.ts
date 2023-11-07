@@ -18,6 +18,10 @@ export class RegisterValidation implements PipeTransform {
     if (!filterPassword.test(account.password)) {
       throw new BadRequestException('Password format is invalid.');
     }
+    if (!value.role) {
+      const { role, ...result } = value;
+      return result;
+    }
     return value;
   }
 }

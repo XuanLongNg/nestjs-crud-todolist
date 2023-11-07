@@ -20,7 +20,7 @@ import { AuthGuard } from '../auth/auth.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/common/constants/role.enum';
 
-@Controller('account')
+@Controller('api/account')
 export class AccountController {
   constructor(private readonly accountService: AccountService) {}
   @Get()
@@ -79,15 +79,12 @@ export class AccountController {
   async update(
     @Res() res,
     @Param('id', ParseIntPipe) id: number,
-    @Body() body,
+    @Body() body: Account,
   ) {
     try {
       const data = {
         id: id,
-        profile: body.profile,
-        username: body.username,
-        password: body.password,
-        role: body.role,
+        ...body,
       } as Account;
       const account = await this.accountService.update(data);
       return res.status(HttpStatus.OK).json({

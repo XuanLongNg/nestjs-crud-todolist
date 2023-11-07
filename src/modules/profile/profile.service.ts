@@ -38,38 +38,21 @@ export class ProfileService {
       throw error;
     }
   }
-  async create({ name, dob, gender, email, image }: Profile) {
+  async create(profile: Profile) {
     try {
-      const profile = new Profile();
-      profile.name = name;
-      profile.dob = dob;
-      profile.gender = gender;
-      profile.email = email;
-      profile.image = image;
       return await this.profileRepository.save(profile);
     } catch (error) {
       throw error;
     }
   }
-  async update({ id, name, dob, gender, email, image }: Profile) {
+  async update(profile: Partial<Profile>) {
     try {
-      const data = await this.profileRepository.find({
-        where: {
-          id: id,
-        },
-      });
+      const data = await this.findOne({ id: profile.id } as Profile);
 
-      if (!data.length) {
+      if (!data) {
         throw new Error('Profile does not exist');
       }
-      const profile = new Profile();
-      profile.id = id;
-      profile.name = name;
-      profile.dob = dob;
-      profile.gender = gender;
-      profile.email = email;
-      profile.image = image;
-      await this.profileRepository.update(id, profile);
+      await this.profileRepository.update(profile.id, profile);
       return profile;
     } catch (error) {
       throw error;

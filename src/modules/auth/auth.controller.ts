@@ -7,6 +7,7 @@ import {
   Request,
   Response,
   UseGuards,
+  UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -15,19 +16,19 @@ import { AuthGuard } from './auth.guard';
 import { LoginValidation } from 'src/common/pipes/loginValidate.pipe';
 import { RegisterValidation } from 'src/common/pipes/registerValidate.pipe';
 import { Public } from 'src/common/decorators/publicRoute.decorator';
+import { LocalAuthGuard } from './local-auth.guard';
 
-@Controller('auth')
+@Controller('api/auth')
 export default class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('login')
   @Public()
-  @UseGuards(AuthGuard)
-  // @UsePipes(new LoginValidation())
-  async login(@Response() res, @Body() body: Account) {
+  @UseGuards(LocalAuthGuard)
+  async login(@Request() req, @Response() res) {
     try {
-      const loginResponse = await this.authService.login(body);
-      return res.status(HttpStatus.OK).json({
+      const loginResponse = await this.authService.login(req.user);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         message: 'Login successful',
         ...loginResponse,
       });
@@ -44,12 +45,14 @@ export default class AuthController {
     try {
       const data = {
         profile: body.profile,
-        account: body.account,
+        account: { ...body.account, role: 'member' },
       };
       const registerResponse = await this.authService.register(data);
       return res.status(HttpStatus.OK).json({
         message: 'Register successful',
-        ...registerResponse,
+        data: {
+          ...registerResponse,
+        },
       });
     } catch (error) {
       return res.status(HttpStatus.UNAUTHORIZED).json({ error: error.message });
@@ -64,7 +67,7 @@ export default class AuthController {
       const refreshToken = req.headers['authorization'];
       const data = await this.authService.handleRefreshToken(refreshToken);
 
-      return res.json({ message: 'Ok', ...data });
+      return res.json({ message: 'Success', ...data });
     } catch (error) {
       return res.status(HttpStatus.UNAUTHORIZED).json({ error: error.message });
     }
@@ -75,14 +78,16 @@ export default class AuthController {
   @UseGuards(AuthGuard)
   async resetPassword(@Response() res, @Body() body) {
     try {
+      console.log(body);
+
       await this.authService.resetPassword({
         username: body.username,
         password: body.password,
         otp: body.otp,
       });
-      return res.json({ message: 'Success' });
+      return res.status(HttpStatus.OK).json({ message: 'Success' });
     } catch (error) {
-      return res.status(HttpStatus.BAD_REQUEST).json({ error: error });
+      return res.status(HttpStatus.BAD_REQUEST).json({ error: error.message });
     }
   }
 
@@ -92,7 +97,7 @@ export default class AuthController {
   async sendMailReset(@Response() res, @Body() body) {
     try {
       await this.authService.sendMailReset(body.email);
-      return res.json({ message: 'done' });
+      return res.status(HttpStatus.OK).json({ message: 'Success' });
     } catch (error) {
       return res.status(HttpStatus.BAD_REQUEST).json({ error: error });
     }

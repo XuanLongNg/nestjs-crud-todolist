@@ -5,13 +5,14 @@ import {
 } from '@nestjs/common';
 import { AccountService } from '../account/account.service';
 import { Account } from '../account/account.entity';
-import * as jwt from 'jsonwebtoken';
+// import * as jwt from 'jsonwebtoken';
 import { AppConfigService } from '../configs/app.config.service';
 import { Profile } from '../profile/profile.entity';
 import { ProfileService } from '../profile/profile.service';
 import { EmailService } from '../emails/email.service';
 import { authenticator, totp } from 'otplib';
 import { compareText, hashText } from 'src/common/utils/brypt/brypt';
+import { JwtService } from '@nestjs/jwt';
 // import * as totp from 'otplib';
 
 @Injectable()
@@ -23,6 +24,7 @@ export class AuthService {
     private profileService: ProfileService,
     private appConfigService: AppConfigService,
     private emailService: EmailService,
+    private jwt: JwtService,
   ) {
     this.saltRounds = 5;
     this.totp = totp;
@@ -31,48 +33,64 @@ export class AuthService {
     };
   }
   signToken = <T>(user: T) => {
-    const access_token: string = jwt.sign(
-      { ...user },
-      this.appConfigService.getEnv('JWT_ACCESS_SECRET'),
-      { expiresIn: 60 * 60 * 24 },
-    );
-    const refresh_token: string = jwt.sign(
-      { ...user },
-      this.appConfigService.getEnv('JWT_REFRESH_SECRET'),
-      { expiresIn: Math.pow(60, 15) },
-    );
+    const access_token: string = this.jwt.sign({ ...user } as Object, {
+      secret: this.appConfigService.getEnv('JWT_ACCESS_SECRET'),
+      expiresIn: 60 * 60 * 24,
+    });
+    const refresh_token: string = this.jwt.sign({ ...user } as Object, {
+      secret: this.appConfigService.getEnv('JWT_REFRESH_SECRET'),
+      expiresIn: 60 * 60 * 24 * 30,
+    });
 
     return { access_token, refresh_token };
   };
   async handleRefreshToken(refreshToken: string) {
-    const decodeData = jwt.verify(
-      refreshToken,
-      this.appConfigService.getEnv('JWT_REFRESH_SECRET'),
-    );
-    if (!decodeData) throw new UnauthorizedException('Invalid refresh token');
-    delete decodeData.exp;
-    const { access_token, refresh_token } = this.signToken(decodeData);
-    return {
-      data: { ...decodeData },
-      access_token,
-      refresh_token,
-    };
+    try {
+      if (!refreshToken)
+        throw new BadRequestException('Secret key must be provided');
+      console.log('next refresh token');
+
+      const decodeData = this.jwt.verify(refreshToken, {
+        secret: this.appConfigService.getEnv('JWT_REFRESH_SECRET'),
+      });
+      delete decodeData.exp;
+      const { access_token, refresh_token } = this.signToken(decodeData);
+      return {
+        data: { ...decodeData },
+        access_token,
+        refresh_token,
+      };
+    } catch (error) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
   }
-  async login(account: Account) {
+  async validateAccount(account: Account) {
     try {
       const accountData = await this.accountService.findOne({
         username: account.username,
       } as Account);
-      if (!accountData) throw new Error(`Username or password is not correct`);
-      if (!(await compareText(account.password, accountData.password)))
-        throw new Error(`Username or password is not correct`);
-      const { refresh_token, access_token } =
-        this.signToken<Account>(accountData);
 
+      if (!accountData) return null;
+      if (!(await compareText(account.password, accountData.password)))
+        return null;
+
+      return {
+        ...accountData,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+  async login(account: Account) {
+    try {
+      const { password, ...result } = account;
+      const { refresh_token, access_token } = this.signToken<Account>(
+        result as Account,
+      );
       return {
         access_token,
         refresh_token,
-        data: { ...accountData },
+        data: { ...result },
       };
     } catch (error) {
       throw error;

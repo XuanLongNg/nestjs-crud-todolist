@@ -5,14 +5,17 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
-import * as jwt from 'jsonwebtoken';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC } from 'src/common/decorators/publicRoute.decorator';
 import { Role } from 'src/common/constants/role.enum';
 import { ROLES_KEY } from 'src/common/decorators/roles.decorator';
+import { JwtService } from '@nestjs/jwt';
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(
+    private reflector: Reflector,
+    private jwt: JwtService,
+  ) {}
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
@@ -34,10 +37,13 @@ export class AuthGuard implements CanActivate {
         ? request.headers.authorization
         : '';
       if (!token) throw new UnauthorizedException('Invalid token');
-      const decodeData = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+
+      const decodeData = this.jwt.verify(token, {
+        secret: process.env.JWT_ACCESS_SECRET,
+      });
       return role.some((role) => decodeData.role?.includes(role));
     } catch (error) {
-      throw new UnauthorizedException('Token expired');
+      throw new UnauthorizedException(error.message);
     }
   }
 }
