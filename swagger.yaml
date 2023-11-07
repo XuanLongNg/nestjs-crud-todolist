@@ -826,11 +826,11 @@ paths:
         - upload
       description: upload file, requires api key
       produces:
-        - multitype/form-data
+        - multipart/form-data;
       requestBody:
         description: upload file
         content:
-          multitype/form-data:
+          multipart/form-data;:
             schema:
               $ref: '#/components/schemes/upload'
       responses:
