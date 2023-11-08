@@ -10,12 +10,14 @@ import {
   Put,
   Res,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ProfileService } from './profile.service';
 import { Profile } from './profile.entity';
 import { AuthGuard } from '../auth/auth.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/common/constants/role.enum';
+import { AccessInterceptor } from 'src/common/interceptors/accessInformation.interceptor';
 
 @Controller('api/profile')
 export class ProfileController {
@@ -30,21 +32,25 @@ export class ProfileController {
     } catch (error) {
       return res
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .json({ error: error.message });
+        .json({
+          message: error.message,
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        });
     }
   }
   @Get(':id')
-  @Roles(Role.ADMIN)
-  @Roles(Role.MEMBER)
+  @Roles(Role.ADMIN, Role.MEMBER)
   @UseGuards(AuthGuard)
+  @UseInterceptors(AccessInterceptor)
   async findOne(@Res() res, @Param('id', ParseIntPipe) id: number) {
     try {
       const data = await this.profileService.findOne({ id: id } as Profile);
       return res.status(HttpStatus.OK).json({ data });
     } catch (error) {
-      return res
-        .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .json({ error: error.message });
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: error.message,
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      });
     }
   }
 
@@ -66,14 +72,15 @@ export class ProfileController {
         message: `Profile id ${profile.id} created`,
       });
     } catch (error) {
-      return res
-        .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .json({ error: error.message });
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: error.message,
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      });
     }
   }
   @Put(':id')
-  @Roles(Role.ADMIN)
-  @Roles(Role.MEMBER)
+  @Roles(Role.ADMIN, Role.MEMBER)
+  @UseInterceptors(AccessInterceptor)
   @UseGuards(AuthGuard)
   async update(
     @Res() res,
@@ -95,9 +102,10 @@ export class ProfileController {
         message: `Profile id ${profile.id} updated successfully`,
       });
     } catch (error) {
-      return res
-        .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .json({ error: error.message });
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: error.message,
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      });
     }
   }
   @Delete(':id')
@@ -108,9 +116,10 @@ export class ProfileController {
       await this.profileService.delete({ id: id });
       return res.status(HttpStatus.OK).json({ message: 'Success' });
     } catch (error) {
-      return res
-        .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .json({ error: error.message });
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: error.message,
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      });
     }
   }
 }

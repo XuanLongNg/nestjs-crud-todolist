@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -13,13 +14,16 @@ import { EmailService } from '../emails/email.service';
 import { authenticator, totp } from 'otplib';
 import { compareText, hashText } from 'src/common/utils/brypt/brypt';
 import { JwtService } from '@nestjs/jwt';
-// import * as totp from 'otplib';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
+import { v4 as uuid } from 'uuid';
 
 @Injectable()
 export class AuthService {
   private readonly saltRounds: number;
   private readonly totp;
   constructor(
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private accountService: AccountService,
     private profileService: ProfileService,
     private appConfigService: AppConfigService,
@@ -35,30 +39,26 @@ export class AuthService {
   signToken = <T>(user: T) => {
     const access_token: string = this.jwt.sign({ ...user } as Object, {
       secret: this.appConfigService.getEnv('JWT_ACCESS_SECRET'),
-      expiresIn: 60 * 60 * 24,
+      expiresIn: parseInt(this.appConfigService.getEnv('TTL_ACCESS')),
     });
     const refresh_token: string = this.jwt.sign({ ...user } as Object, {
       secret: this.appConfigService.getEnv('JWT_REFRESH_SECRET'),
-      expiresIn: 60 * 60 * 24 * 30,
+      expiresIn: parseInt(this.appConfigService.getEnv('TTL_REFRESH')),
     });
-
     return { access_token, refresh_token };
   };
-  async handleRefreshToken(refreshToken: string) {
+  async handleRefreshToken(id) {
     try {
-      if (!refreshToken)
-        throw new BadRequestException('Secret key must be provided');
-      console.log('next refresh token');
+      const refreshToken: string = await this.cacheManager.get(id.toString());
 
       const decodeData = this.jwt.verify(refreshToken, {
         secret: this.appConfigService.getEnv('JWT_REFRESH_SECRET'),
       });
       delete decodeData.exp;
-      const { access_token, refresh_token } = this.signToken(decodeData);
+      const { access_token } = this.signToken(decodeData);
       return {
         data: { ...decodeData },
         access_token,
-        refresh_token,
       };
     } catch (error) {
       throw new UnauthorizedException('Invalid refresh token');
@@ -69,6 +69,7 @@ export class AuthService {
       const accountData = await this.accountService.findOne({
         username: account.username,
       } as Account);
+      console.log(accountData);
 
       if (!accountData) return null;
       if (!(await compareText(account.password, accountData.password)))
@@ -87,9 +88,16 @@ export class AuthService {
       const { refresh_token, access_token } = this.signToken<Account>(
         result as Account,
       );
+      console.log(parseInt(this.appConfigService.getEnv('TTL_REFRESH')));
+
+      await this.cacheManager.set(
+        account.id.toString(),
+        refresh_token,
+        parseInt(this.appConfigService.getEnv('TTL_REFRESH')) * 1000,
+      );
+
       return {
         access_token,
-        refresh_token,
         data: { ...result },
       };
     } catch (error) {
@@ -138,6 +146,17 @@ export class AuthService {
     } catch (error) {
       console.log(error);
       throw error;
+    }
+  }
+  async changePassword(account: Account, password: string) {
+    try {
+      const result = await this.accountService.update({
+        ...account,
+        password: password,
+      });
+      return result;
+    } catch (error) {
+      throw new UnauthorizedException(error.message);
     }
   }
   async sendMailReset(email: string) {

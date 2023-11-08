@@ -17,9 +17,15 @@ import { UploadModule } from './modules/upload/upload.module';
 import { JwtModule } from '@nestjs/jwt';
 import { FirebaseModule } from './modules/firebase/firebase.module';
 import { LoggerCustom } from './services/logger.service';
+import { CacheModule, CacheStore } from '@nestjs/cache-manager';
+import type { RedisClientOptions } from 'redis';
+import { redisStore } from 'cache-manager-redis-store';
+import { AppConfigService } from './modules/configs/app.config.service';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
+    AppConfigModule.register({ folder: '' }),
     ConfigModule.forRoot({
       isGlobal: true,
       load: [config],
@@ -28,11 +34,22 @@ import { LoggerCustom } from './services/logger.service';
       global: true,
     }),
     TypeOrmModule.forRoot(config().database as TypeOrmModuleOptions),
+    CacheModule.registerAsync({
+      isGlobal: true,
+      imports: [AppConfigModule.register({ folder: '' })],
+      useFactory: async (configService: AppConfigService) => ({
+        store: (await redisStore({
+          url: configService.getEnv('REDIS_URL'),
+          password: configService.getEnv('REDIS_PASSWORD'),
+        })) as unknown as CacheStore,
+      }),
+      inject: [AppConfigService],
+    }),
+    ScheduleModule.forRoot(),
     ProfileModule,
     AccountModule,
     AuthModule,
     TodoModule,
-    AppConfigModule.register({ folder: '' }),
     EmailModule,
     UploadModule,
     FirebaseModule,

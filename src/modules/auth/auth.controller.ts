@@ -17,6 +17,8 @@ import { LoginValidation } from 'src/common/pipes/loginValidate.pipe';
 import { RegisterValidation } from 'src/common/pipes/registerValidate.pipe';
 import { Public } from 'src/common/decorators/publicRoute.decorator';
 import { LocalAuthGuard } from './local-auth.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { Role } from 'src/common/constants/role.enum';
 
 @Controller('api/auth')
 export default class AuthController {
@@ -28,12 +30,14 @@ export default class AuthController {
   async login(@Request() req, @Response() res) {
     try {
       const loginResponse = await this.authService.login(req.user);
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+      return res.json({
         message: 'Login successful',
         ...loginResponse,
       });
     } catch (error) {
-      return res.status(HttpStatus.UNAUTHORIZED).json({ error: error.message });
+      return res
+        .status(HttpStatus.UNAUTHORIZED)
+        .json({ message: error.message, statusCode: HttpStatus.UNAUTHORIZED });
     }
   }
 
@@ -55,24 +59,50 @@ export default class AuthController {
         },
       });
     } catch (error) {
-      return res.status(HttpStatus.UNAUTHORIZED).json({ error: error.message });
+      return res
+        .status(HttpStatus.UNAUTHORIZED)
+        .json({ message: error.message, statusCode: HttpStatus.UNAUTHORIZED });
     }
   }
 
   @Get('refresh-token')
   @Public()
   @UseGuards(AuthGuard)
-  async refreshToken(@Request() req, @Response() res, @Body() body) {
+  async refreshToken(@Request() req, @Response() res) {
     try {
-      const refreshToken = req.headers['authorization'];
+      const refreshToken = req.headers['id'];
+      console.log(refreshToken);
+
       const data = await this.authService.handleRefreshToken(refreshToken);
 
       return res.json({ message: 'Success', ...data });
     } catch (error) {
-      return res.status(HttpStatus.UNAUTHORIZED).json({ error: error.message });
+      return res
+        .status(HttpStatus.UNAUTHORIZED)
+        .json({ message: error.message, statusCode: HttpStatus.UNAUTHORIZED });
     }
   }
 
+  @Post('change-password')
+  @Roles(Role.ADMIN, Role.MEMBER)
+  @UseGuards(AuthGuard)
+  async changePassword(@Request() req, @Response() res, @Body() body) {
+    try {
+      const account = {
+        id: req.headers.id,
+      } as Account;
+      const data = await this.authService.changePassword(
+        account,
+        body.password,
+      );
+      return res.send({ message: 'Success' });
+    } catch (error) {
+      return res.send({
+        message: error.message,
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      });
+    }
+  }
   @Post('reset-password')
   @Public()
   @UseGuards(AuthGuard)
@@ -87,7 +117,9 @@ export default class AuthController {
       });
       return res.status(HttpStatus.OK).json({ message: 'Success' });
     } catch (error) {
-      return res.status(HttpStatus.BAD_REQUEST).json({ error: error.message });
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ message: error.message, statusCode: HttpStatus.BAD_REQUEST });
     }
   }
 
@@ -99,7 +131,9 @@ export default class AuthController {
       await this.authService.sendMailReset(body.email);
       return res.status(HttpStatus.OK).json({ message: 'Success' });
     } catch (error) {
-      return res.status(HttpStatus.BAD_REQUEST).json({ error: error });
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ message: error.message, statusCode: HttpStatus.BAD_REQUEST });
     }
   }
 }

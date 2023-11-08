@@ -89,8 +89,13 @@ paths:
       tags:
         - auth
       description: Get refresh token
-      security:
-        - apiKey: []
+      parameters:
+        - in: header
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id user account
       responses:
         200:
           description: Success
@@ -162,6 +167,34 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemes/sendMailResetSuccess'
+        500:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemes/500'
+  /auth/change-password:
+    post:
+      tags:
+        - auth
+      description: change password
+      produces:
+        - application/json
+      security:
+        - apiKey: []
+      requestBody:
+        description: change password
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemes/change-password'
+      responses:
+        200:
+          description: Send email successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemes/changePasswordSuccess'
         500:
           description: Unexpected error
           content:
@@ -979,6 +1012,15 @@ components:
           type: string
       example:
         email: 'hello@gmail.com'
+    change-password:
+      require:
+        - password
+      type: object
+      properties:
+        password:
+          type: string
+      example:
+        password: '12345'
     add-profile:
       type: object
       properties:
@@ -1225,6 +1267,13 @@ components:
       example:
         message: Success
     sendMailResetSuccess:
+      type: object
+      properties:
+        message:
+          type: string
+      example:
+        message: Success
+    changePasswordSuccess:
       type: object
       properties:
         message:

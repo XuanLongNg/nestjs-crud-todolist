@@ -13,12 +13,14 @@ import {
   Put,
   Res,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AccountService } from './account.service';
 import { Account } from './account.entity';
 import { AuthGuard } from '../auth/auth.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/common/constants/role.enum';
+import { AccessInterceptor } from 'src/common/interceptors/accessInformation.interceptor';
 
 @Controller('api/account')
 export class AccountController {
@@ -31,24 +33,19 @@ export class AccountController {
       const data = await this.accountService.findAll();
       return res.status(HttpStatus.OK).json({ data });
     } catch (error) {
-      return res
-        .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .json({ error: error.message });
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: error.message,
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      });
     }
   }
   @Get(':id')
-  @Roles(Role.ADMIN)
-  @Roles(Role.MEMBER)
+  @Roles(Role.ADMIN, Role.MEMBER)
   @UseGuards(AuthGuard)
-  async findOne(@Res() res, @Param('id', ParseIntPipe) id: number) {
-    try {
-      const data = await this.accountService.findOne({ id: id } as Account);
-      return res.status(HttpStatus.OK).json({ data });
-    } catch (error) {
-      return res
-        .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .json({ error: error.message });
-    }
+  @UseInterceptors(AccessInterceptor)
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    const data = await this.accountService.findOne({ id: id } as Account);
+    return data;
   }
   @Post()
   @Roles(Role.ADMIN)
@@ -67,24 +64,26 @@ export class AccountController {
         message: `Account id ${account.id} created`,
       });
     } catch (error) {
-      return res
-        .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .json({ error: error.message });
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: error.message,
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      });
     }
   }
   @Put(':id')
-  @Roles(Role.ADMIN)
-  @Roles(Role.MEMBER)
+  @Roles(Role.ADMIN, Role.MEMBER)
   @UseGuards(AuthGuard)
+  @UseInterceptors(AccessInterceptor)
   async update(
     @Res() res,
     @Param('id', ParseIntPipe) id: number,
     @Body() body: Account,
   ) {
     try {
+      const { role, ...rest } = body;
       const data = {
         id: id,
-        ...body,
+        ...rest,
       } as Account;
       const account = await this.accountService.update(data);
       return res.status(HttpStatus.OK).json({
@@ -92,9 +91,10 @@ export class AccountController {
         message: `Account id ${account.id} updated`,
       });
     } catch (error) {
-      return res
-        .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .json({ error: error.message });
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: error.message,
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      });
     }
   }
   @Delete(':id')
@@ -107,7 +107,10 @@ export class AccountController {
     } catch (error) {
       return res
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .json({ error: error.message });
+        .json({
+          message: error.message,
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        });
     }
   }
 }

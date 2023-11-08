@@ -14,13 +14,19 @@ export enum Frequency {
 export class TodoService {
   @InjectRepository(Todo)
   private readonly todoRepository: Repository<Todo>;
-  async length() {
+  async checkUser(id_todo: number, id_user: number) {
     try {
-      return (await this.todoRepository.find({})).length;
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
+      const data = await this.todoRepository.findOne({
+        where: {
+          id: id_todo,
+          account: {
+            id: id_user,
+          },
+        },
+      });
+      if (!data) return false;
+      return true;
+    } catch (error) {}
   }
   async findAll() {
     try {
