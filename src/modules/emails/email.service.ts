@@ -14,7 +14,6 @@ export class EmailService {
         pass: this.configService.getEnv('MAIL_PASSWD'),
       },
     });
-    console.log('Email third party configuration');
   }
   async sendEmail({
     from,

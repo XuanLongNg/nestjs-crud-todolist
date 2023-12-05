@@ -21,7 +21,6 @@ export class FirebaseService {
     };
     initializeApp(config);
     this.bucket = getStorage().bucket();
-    console.log('Firebase connected');
   }
 
   async upload(ref, file) {

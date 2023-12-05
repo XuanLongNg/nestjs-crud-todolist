@@ -8,7 +8,10 @@ import * as YAML from 'yamljs';
 const swaggerDocs = YAML.load('./swagger.yaml');
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: new LoggerCustom(),
+  });
+
   app.enableCors({
     origin: 'http://localhost:3000',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
@@ -20,7 +23,6 @@ async function bootstrap() {
     swaggerUI.serve,
     swaggerUI.setup(swaggerDocs, { explorer: true }),
   );
-  console.log('Database connected');
   app.useGlobalInterceptors(new LoggingInterceptor());
   await app.listen(4000);
 }

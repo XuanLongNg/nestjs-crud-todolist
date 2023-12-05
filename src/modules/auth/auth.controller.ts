@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   HttpStatus,
+  Inject,
   Post,
   Request,
   Response,
@@ -19,10 +20,14 @@ import { Public } from 'src/common/decorators/publicRoute.decorator';
 import { LocalAuthGuard } from './local-auth.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/common/constants/role.enum';
+import { LoggerCustom } from 'src/services/logger.service';
 
 @Controller('api/auth')
 export default class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    @Inject('LOGGER') private logger: LoggerCustom,
+  ) {}
 
   @Post('login')
   @Public()
@@ -35,6 +40,7 @@ export default class AuthController {
         ...loginResponse,
       });
     } catch (error) {
+      this.logger.error(error.message);
       return res
         .status(HttpStatus.UNAUTHORIZED)
         .json({ message: error.message, statusCode: HttpStatus.UNAUTHORIZED });
@@ -45,7 +51,7 @@ export default class AuthController {
   @Public()
   @UseGuards(AuthGuard)
   @UsePipes(new RegisterValidation())
-  async register(@Request() req, @Response() res, @Body() body) {
+  async register(@Response() res, @Body() body) {
     try {
       const data = {
         profile: body.profile,
@@ -59,6 +65,8 @@ export default class AuthController {
         },
       });
     } catch (error) {
+      this.logger.error(error.message);
+
       return res
         .status(HttpStatus.UNAUTHORIZED)
         .json({ message: error.message, statusCode: HttpStatus.UNAUTHORIZED });
@@ -71,12 +79,10 @@ export default class AuthController {
   async refreshToken(@Request() req, @Response() res) {
     try {
       const refreshToken = req.headers['id'];
-      console.log(refreshToken);
-
       const data = await this.authService.handleRefreshToken(refreshToken);
-
       return res.json({ message: 'Success', ...data });
     } catch (error) {
+      this.logger.error(error.message);
       return res
         .status(HttpStatus.UNAUTHORIZED)
         .json({ message: error.message, statusCode: HttpStatus.UNAUTHORIZED });
@@ -97,6 +103,7 @@ export default class AuthController {
       );
       return res.send({ message: 'Success' });
     } catch (error) {
+      this.logger.error(error.message);
       return res.send({
         message: error.message,
         statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -108,8 +115,6 @@ export default class AuthController {
   @UseGuards(AuthGuard)
   async resetPassword(@Response() res, @Body() body) {
     try {
-      console.log(body);
-
       await this.authService.resetPassword({
         username: body.username,
         password: body.password,
@@ -117,6 +122,7 @@ export default class AuthController {
       });
       return res.status(HttpStatus.OK).json({ message: 'Success' });
     } catch (error) {
+      this.logger.error(error.message);
       return res
         .status(HttpStatus.BAD_REQUEST)
         .json({ message: error.message, statusCode: HttpStatus.BAD_REQUEST });
@@ -131,6 +137,7 @@ export default class AuthController {
       await this.authService.sendMailReset(body.email);
       return res.status(HttpStatus.OK).json({ message: 'Success' });
     } catch (error) {
+      this.logger.error(error.message);
       return res
         .status(HttpStatus.BAD_REQUEST)
         .json({ message: error.message, statusCode: HttpStatus.BAD_REQUEST });

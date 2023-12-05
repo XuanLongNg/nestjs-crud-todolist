@@ -12,6 +12,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { LocalStrategy } from './local.strategy';
 import { LocalAuthGuard } from './local-auth.guard';
+import { LoggerCustom } from 'src/services/logger.service';
 
 @Module({
   imports: [
@@ -28,6 +29,10 @@ import { LocalAuthGuard } from './local-auth.guard';
     LoginValidation,
     RegisterValidation,
     LocalStrategy,
+    {
+      provide: 'LOGGER',
+      useClass: LoggerCustom,
+    },
   ],
   controllers: [AuthController],
   exports: [AuthGuard],

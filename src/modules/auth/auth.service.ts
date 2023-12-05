@@ -69,8 +69,6 @@ export class AuthService {
       const accountData = await this.accountService.findOne({
         username: account.username,
       } as Account);
-      console.log(accountData);
-
       if (!accountData) return null;
       if (!(await compareText(account.password, accountData.password)))
         return null;
@@ -88,7 +86,6 @@ export class AuthService {
       const { refresh_token, access_token } = this.signToken<Account>(
         result as Account,
       );
-      console.log(parseInt(this.appConfigService.getEnv('TTL_REFRESH')));
 
       await this.cacheManager.set(
         account.id.toString(),
@@ -135,7 +132,6 @@ export class AuthService {
         token: otp,
         secret: this.appConfigService.getEnv('OTP_SECRET'),
       });
-      console.log(username, password, otp, isVerify);
       if (!isVerify) {
         throw new BadRequestException('Invalid OTP');
       }
@@ -144,7 +140,6 @@ export class AuthService {
         password,
       } as Account);
     } catch (error) {
-      console.log(error);
       throw error;
     }
   }
@@ -164,7 +159,6 @@ export class AuthService {
       const otp = this.totp.generate(
         this.appConfigService.getEnv('OTP_SECRET'),
       );
-      console.log(otp);
 
       const info = {
         from: this.appConfigService.getEnv('MAIL_ACCOUNT'),

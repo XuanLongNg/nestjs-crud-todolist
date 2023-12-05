@@ -1,12 +1,16 @@
 import { Strategy } from 'passport-local';
 import { PassportStrategy } from '@nestjs/passport';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Account } from '../account/account.entity';
+import { LoggerCustom } from 'src/services/logger.service';
 
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy) {
-  constructor(private authService: AuthService) {
+  constructor(
+    private authService: AuthService,
+    @Inject('LOGGER') private logger: LoggerCustom,
+  ) {
     super();
   }
 
@@ -16,6 +20,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
       password: password,
     } as Account);
     if (!user) {
+      this.logger.error('Username or password is incorrect');
       throw new UnauthorizedException('Username or password is incorrect');
     }
 
